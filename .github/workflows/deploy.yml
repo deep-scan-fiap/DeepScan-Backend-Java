@@ -1,0 +1,33 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t deepscan-java:${{ github.sha }} \
+            -t deepscan-java:latest \
+            .
+
+      - name: Stop old container
+        run: docker stop deepscan-java || true
+
+      - name: Remove old container
+        run: docker rm deepscan-java || true
+
+      - name: Run new container
+        run: |
+          docker run -d \
+            --name deepscan-java \
+            --restart always \
+            -p 127.0.0.1:8081:8080 \
+            deepscan-java:latest
