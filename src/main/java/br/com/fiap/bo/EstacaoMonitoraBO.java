@@ -3,6 +3,7 @@ package br.com.fiap.bo;
 import br.com.fiap.dao.EstacaoMonitoraDao;
 import br.com.fiap.entities.EstacaoMonitora;
 
+import java.text.Normalizer;
 import java.util.List;
 
 public class EstacaoMonitoraBO {
@@ -13,10 +14,10 @@ public class EstacaoMonitoraBO {
         if (estacao.getNomeEstacao() == null || estacao.getNomeEstacao().isBlank())
             throw new IllegalArgumentException("Nome da estacao e obrigatorio.");
 
-        if (!estacao.getTipoEstacao().equals("Boia") &&
-            !estacao.getTipoEstacao().equals("Satelite") &&
-            !estacao.getTipoEstacao().equals("Submarina"))
-            throw new IllegalArgumentException("Tipo invalido. Use: Boia, Satelite ou Submarina.");
+        String tipo = normalizarTipo(estacao.getTipoEstacao());
+        if (!tipo.equals("BOIA") && !tipo.equals("SATELITE") && !tipo.equals("SUBMARINA"))
+            throw new IllegalArgumentException("Tipo invalido. Use: BOIA, SATELITE ou SUBMARINA.");
+        estacao.setTipoEstacao(tipo);
 
         if (estacao.getLatEstacao() < -90 || estacao.getLatEstacao() > 90)
             throw new IllegalArgumentException("Latitude invalida. Deve estar entre -90 e 90.");
@@ -57,5 +58,13 @@ public class EstacaoMonitoraBO {
         if (existente == null)
             throw new IllegalArgumentException("Estacao com ID " + id + " nao encontrada.");
         dao.deletar(id);
+    }
+
+    private String normalizarTipo(String tipo) {
+        if (tipo == null)
+            throw new IllegalArgumentException("Tipo da estacao e obrigatorio.");
+        String semAcento = Normalizer.normalize(tipo, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        return semAcento.trim().toUpperCase();
     }
 }

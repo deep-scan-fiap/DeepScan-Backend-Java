@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 public class TesteInserir {
     public static void main(String[] args) {
 
-        // insere uma estacao — tipo deve ser 'Boia', 'Satelite' ou 'Submarina'
+        // insere uma estacao — tipo deve ser 'BOIA', 'SATELITE' ou 'SUBMARINA'
         EstacaoMonitoraDao estacaoDao = new EstacaoMonitoraDao();
         EstacaoMonitora estacao = new EstacaoMonitora(
-                0, "Boia DART-01", -23.5, -43.2, "Boia"
+                0, "Boia DART-01", -23.5, -43.2, "BOIA"
         );
         estacaoDao.inserir(estacao);
         System.out.println("Estacao inserida: " + estacao);

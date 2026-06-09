@@ -14,16 +14,28 @@ public class ZonaMonitoraDao {
 
     public void inserir(ZonaMonitora z) {
         String sql = "INSERT INTO ZONA_MONITORA (ID_ZONA, NOME_ZONA, PAIS_ZONA, DESC_ZONA) " +
-                     "VALUES (SEQ_ZONA.NEXTVAL, ?, ?, ?)";
+                     "VALUES (?, ?, ?, ?)";
         try (Connection con = new ConexaoFactory().conexao();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, z.getNomeZona());
-            ps.setString(2, z.getPaisZona());
-            ps.setString(3, z.getDescZona());
+            int novoId = proximoId(con, "ZONA_MONITORA", "ID_ZONA");
+            ps.setInt(1, novoId);
+            ps.setString(2, z.getNomeZona());
+            ps.setString(3, z.getPaisZona());
+            ps.setString(4, z.getDescZona());
             ps.executeUpdate();
+            z.setIdZona(novoId);
             System.out.println("ZonaMonitora inserida com sucesso.");
         } catch (SQLException | ClassNotFoundException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    private int proximoId(Connection con, String tabela, String coluna) throws SQLException {
+        String sql = "SELECT NVL(MAX(" + coluna + "), 0) + 1 FROM " + tabela;
+        try (PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            return rs.getInt(1);
         }
     }
 

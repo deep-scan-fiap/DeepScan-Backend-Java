@@ -12,11 +12,11 @@ public class TesteAtualizar {
         EstacaoMonitora estacao = estacaoDao.buscarPorId(1);
 
         if (estacao != null) {
-            // atualiza os dados — tipo deve ser 'Boia', 'Satelite' ou 'Submarina'
+            // atualiza os dados — tipo deve ser 'BOIA', 'SATELITE' ou 'SUBMARINA'
             estacao.setNomeEstacao("Boia DART-01 Atualizada");
             estacao.setLatEstacao(-24.0);
             estacao.setLonEstacao(-44.0);
-            estacao.setTipoEstacao("Boia");
+            estacao.setTipoEstacao("BOIA");
 
             estacaoDao.atualizar(estacao);
             System.out.println("Estacao apos atualizacao: " + estacao);

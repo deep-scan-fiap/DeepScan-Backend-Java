@@ -11,21 +11,30 @@ public class EspecieDao {
 
     public void inserir(Especie e) {
         String sql = "INSERT INTO ESPECIE (ID_ESPECIE, NC_ESPECIE, NP_ESPECIE, CONSERVA_ESPECIE, HABITAT_ESPECIE, DESC_ESPECIE) " +
-                     "VALUES (SEQ_ESPECIE.NEXTVAL, ?, ?, ?, ?, ?)";
+                     "VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection con = new ConexaoFactory().conexao();
-             PreparedStatement ps = con.prepareStatement(sql, new String[]{"ID_ESPECIE"})) {
-            ps.setString(1, e.getNcEspecie());
-            ps.setString(2, e.getNpEspecie());
-            ps.setString(3, e.getConservaEspecie());
-            ps.setString(4, e.getHabitatEspecie());
-            ps.setString(5, e.getDescEspecie());
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            int novoId = proximoId(con, "ESPECIE", "ID_ESPECIE");
+            ps.setInt(1, novoId);
+            ps.setString(2, e.getNcEspecie());
+            ps.setString(3, e.getNpEspecie());
+            ps.setString(4, e.getConservaEspecie());
+            ps.setString(5, e.getHabitatEspecie());
+            ps.setString(6, e.getDescEspecie());
             ps.executeUpdate();
-            try (ResultSet keys = ps.getGeneratedKeys()) {
-                if (keys.next()) e.setIdEspecie(keys.getInt(1));
-            }
+            e.setIdEspecie(novoId);
             System.out.println("Especie inserida. ID: " + e.getIdEspecie());
         } catch (SQLException | ClassNotFoundException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    private int proximoId(Connection con, String tabela, String coluna) throws SQLException {
+        String sql = "SELECT NVL(MAX(" + coluna + "), 0) + 1 FROM " + tabela;
+        try (PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            return rs.getInt(1);
         }
     }
 

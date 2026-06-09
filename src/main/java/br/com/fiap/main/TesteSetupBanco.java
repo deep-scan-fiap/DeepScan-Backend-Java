@@ -9,10 +9,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Executa o setup completo do banco de dados respeitando o SQL original do colega.
- * - Dropa tabelas e sequences existentes (ignora erros de "nao existe")
- * - Cria sequences
- * - Cria tabelas com constraints e foreign keys
+ * Executa o setup completo do banco de dados conforme o SQL de producao (v_final).
+ * - Dropa tabelas existentes (ignora erros de "nao existe")
+ * - Cria tabelas com constraints e foreign keys (sem sequences; IDs sao gerados por MAX+1)
  *
  * Execute este teste UMA VEZ antes de rodar os demais testes.
  */
@@ -33,28 +32,10 @@ public class TesteSetupBanco {
             "DROP TABLE usuario_operador CASCADE CONSTRAINTS",
             "DROP TABLE zona_monitora CASCADE CONSTRAINTS",
 
-            // ---- DROP SEQUENCES ----
-            "DROP SEQUENCE seq_alerta",
-            "DROP SEQUENCE seq_avistamento",
-            "DROP SEQUENCE seq_especie",
-            "DROP SEQUENCE seq_estacao",
-            "DROP SEQUENCE seq_leitura",
-            "DROP SEQUENCE seq_opera",
-            "DROP SEQUENCE seq_zona",
-
-            // ---- CREATE SEQUENCES ----
-            "CREATE SEQUENCE seq_zona        START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE",
-            "CREATE SEQUENCE seq_estacao     START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE",
-            "CREATE SEQUENCE seq_especie     START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE",
-            "CREATE SEQUENCE seq_leitura     START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE",
-            "CREATE SEQUENCE seq_alerta      START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE",
-            "CREATE SEQUENCE seq_avistamento START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE",
-            "CREATE SEQUENCE seq_opera       START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE",
-
-            // ---- CREATE TABLE alerta (exatamente como no SQL original) ----
+            // ---- CREATE TABLE alerta ----
             "CREATE TABLE alerta (" +
-            "  id_leitura       NUMBER(4)     NOT NULL, " +
             "  id_alerta        NUMBER(4)     NOT NULL, " +
+            "  id_leitura       NUMBER(4)     NOT NULL, " +
             "  risco_alerta     VARCHAR2(5)   NOT NULL, " +
             "  desc_alerta      VARCHAR2(200) NOT NULL, " +
             "  horario_alerta   TIMESTAMP WITH LOCAL TIME ZONE NOT NULL, " +
@@ -62,6 +43,7 @@ public class TesteSetupBanco {
             "  conclusao_alerta VARCHAR2(1)   NOT NULL" +
             ")",
             "ALTER TABLE alerta ADD CONSTRAINT alerta_PK PRIMARY KEY (id_alerta)",
+            "ALTER TABLE alerta ADD CONSTRAINT chk_risco_alerta CHECK (risco_alerta IN ('ALTO', 'MEDIO', 'BAIXO'))",
             "ALTER TABLE alerta ADD CONSTRAINT chk_conclusao_alerta CHECK (conclusao_alerta IN ('S', 'N'))",
 
             // ---- CREATE TABLE avistamento ----
@@ -88,7 +70,6 @@ public class TesteSetupBanco {
             "  CHECK (conserva_especie IN ('LC', 'NT', 'VU', 'EN', 'CR'))",
 
             // ---- CREATE TABLE estacao_monitora ----
-            // CHECK original: 'Boia', 'Satélite', 'Submarina' (com acento, conforme SQL do colega)
             "CREATE TABLE estacao_monitora (" +
             "  id_estacao   NUMBER(4)    NOT NULL, " +
             "  nome_estacao VARCHAR2(50) NOT NULL, " +
@@ -98,7 +79,8 @@ public class TesteSetupBanco {
             ")",
             "ALTER TABLE estacao_monitora ADD CONSTRAINT estacao_monitora_PK PRIMARY KEY (id_estacao)",
             "ALTER TABLE estacao_monitora ADD CONSTRAINT chk_tipo_estacao " +
-            "  CHECK (tipo_estacao IN ('Boia', 'Sat\u00e9lite', 'Submarina'))",
+            "  CHECK (tipo_estacao IN ('BOIA', 'SATELITE', 'SUBMARINA'))",
+            "ALTER TABLE estacao_monitora ADD CONSTRAINT uq_nome_estacao UNIQUE (nome_estacao)",
 
             // ---- CREATE TABLE estacao_zona ----
             "CREATE TABLE estacao_zona (" +
@@ -130,6 +112,7 @@ public class TesteSetupBanco {
             "  senha_opera VARCHAR2(50) NOT NULL" +
             ")",
             "ALTER TABLE usuario_operador ADD CONSTRAINT usuario_operador_PK PRIMARY KEY (id_opera)",
+            "ALTER TABLE usuario_operador ADD CONSTRAINT uq_email_opera UNIQUE (email_opera)",
 
             // ---- CREATE TABLE zona_monitora ----
             "CREATE TABLE zona_monitora (" +

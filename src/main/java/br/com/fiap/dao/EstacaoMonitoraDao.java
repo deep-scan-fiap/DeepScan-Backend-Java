@@ -11,23 +11,29 @@ public class EstacaoMonitoraDao {
 
     public void inserir(EstacaoMonitora e) {
         String sql = "INSERT INTO ESTACAO_MONITORA (ID_ESTACAO, NOME_ESTACAO, LAT_ESTACAO, LON_ESTACAO, TIPO_ESTACAO) " +
-                     "VALUES (SEQ_ESTACAO.NEXTVAL, ?, ?, ?, ?)";
+                     "VALUES (?, ?, ?, ?, ?)";
         try (Connection con = new ConexaoFactory().conexao();
-             PreparedStatement ps = con.prepareStatement(sql, new String[]{"ID_ESTACAO"})) {
-            ps.setString(1, e.getNomeEstacao());
-            ps.setDouble(2, e.getLatEstacao());
-            ps.setDouble(3, e.getLonEstacao());
-            ps.setString(4, e.getTipoEstacao());
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            int novoId = proximoId(con, "ESTACAO_MONITORA", "ID_ESTACAO");
+            ps.setInt(1, novoId);
+            ps.setString(2, e.getNomeEstacao());
+            ps.setDouble(3, e.getLatEstacao());
+            ps.setDouble(4, e.getLonEstacao());
+            ps.setString(5, e.getTipoEstacao());
             ps.executeUpdate();
-            // Recupera o ID gerado pela sequence e atualiza o objeto
-            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    e.setIdEstacao(generatedKeys.getInt(1));
-                }
-            }
+            e.setIdEstacao(novoId);
             System.out.println("EstacaoMonitora inserida com sucesso. ID: " + e.getIdEstacao());
         } catch (SQLException | ClassNotFoundException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    private int proximoId(Connection con, String tabela, String coluna) throws SQLException {
+        String sql = "SELECT NVL(MAX(" + coluna + "), 0) + 1 FROM " + tabela;
+        try (PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            return rs.getInt(1);
         }
     }
 

@@ -12,19 +12,31 @@ public class AlertaDao {
     public void inserir(Alerta a) {
         String sql = "INSERT INTO ALERTA (ID_ALERTA, ID_LEITURA, RISCO_ALERTA, DESC_ALERTA, " +
                      "HORARIO_ALERTA, OBSERVA_ALERTA, CONCLUSAO_ALERTA) " +
-                     "VALUES (SEQ_ALERTA.NEXTVAL, ?, ?, ?, ?, ?, ?)";
+                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = new ConexaoFactory().conexao();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, a.getIdLeitura());
-            ps.setString(2, a.getRiscoAlerta());
-            ps.setString(3, a.getDescAlerta());
-            ps.setTimestamp(4, Timestamp.valueOf(a.getHorarioAlerta()));
-            ps.setString(5, a.getObservaAlerta());
-            ps.setString(6, a.getConclusaoAlerta());
+            int novoId = proximoId(con, "ALERTA", "ID_ALERTA");
+            ps.setInt(1, novoId);
+            ps.setInt(2, a.getIdLeitura());
+            ps.setString(3, a.getRiscoAlerta());
+            ps.setString(4, a.getDescAlerta());
+            ps.setTimestamp(5, Timestamp.valueOf(a.getHorarioAlerta()));
+            ps.setString(6, a.getObservaAlerta());
+            ps.setString(7, a.getConclusaoAlerta());
             ps.executeUpdate();
+            a.setIdAlerta(novoId);
             System.out.println("Alerta inserido com sucesso.");
         } catch (SQLException | ClassNotFoundException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    private int proximoId(Connection con, String tabela, String coluna) throws SQLException {
+        String sql = "SELECT NVL(MAX(" + coluna + "), 0) + 1 FROM " + tabela;
+        try (PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            return rs.getInt(1);
         }
     }
 

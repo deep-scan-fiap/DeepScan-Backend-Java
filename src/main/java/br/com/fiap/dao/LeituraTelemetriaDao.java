@@ -13,28 +13,34 @@ public class LeituraTelemetriaDao {
         String sql = "INSERT INTO LEITURA_TELEMETRIA " +
                      "(ID_LEITURA, ID_ESTACAO, HORARIO_LEITURA, SST, WAVE_HEIGHT, WAVE_PERIOD, " +
                      "WIND_SPEED, WIND_DIRECTION, EARTHQUAKE_MAGNITUDE, FOCAL_DEPTH) " +
-                     "VALUES (SEQ_LEITURA.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = new ConexaoFactory().conexao();
-             PreparedStatement ps = con.prepareStatement(sql, new String[]{"ID_LEITURA"})) {
-            ps.setInt(1, l.getIdEstacao());
-            ps.setTimestamp(2, Timestamp.valueOf(l.getHorarioLeitura()));
-            ps.setDouble(3, l.getSst());
-            ps.setDouble(4, l.getWaveHeight());
-            ps.setDouble(5, l.getWavePeriod());
-            ps.setDouble(6, l.getWindSpeed());
-            ps.setDouble(7, l.getWindDirection());
-            ps.setDouble(8, l.getEarthquakeMagnitude());
-            ps.setDouble(9, l.getFocalDepth());
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            int novoId = proximoId(con, "LEITURA_TELEMETRIA", "ID_LEITURA");
+            ps.setInt(1, novoId);
+            ps.setInt(2, l.getIdEstacao());
+            ps.setTimestamp(3, Timestamp.valueOf(l.getHorarioLeitura()));
+            ps.setDouble(4, l.getSst());
+            ps.setDouble(5, l.getWaveHeight());
+            ps.setDouble(6, l.getWavePeriod());
+            ps.setDouble(7, l.getWindSpeed());
+            ps.setDouble(8, l.getWindDirection());
+            ps.setDouble(9, l.getEarthquakeMagnitude());
+            ps.setDouble(10, l.getFocalDepth());
             ps.executeUpdate();
-            // Recupera o ID gerado pela sequence e atualiza o objeto
-            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    l.setIdLeitura(generatedKeys.getInt(1));
-                }
-            }
+            l.setIdLeitura(novoId);
             System.out.println("LeituraTelemetria inserida com sucesso. ID: " + l.getIdLeitura());
         } catch (SQLException | ClassNotFoundException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    private int proximoId(Connection con, String tabela, String coluna) throws SQLException {
+        String sql = "SELECT NVL(MAX(" + coluna + "), 0) + 1 FROM " + tabela;
+        try (PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            return rs.getInt(1);
         }
     }
 

@@ -11,20 +11,29 @@ public class AvistamentoDao {
 
     public void inserir(Avistamento a) {
         String sql = "INSERT INTO AVISTAMENTO (ID_AVISTA, ID_ESTACAO, ID_ESPECIE, HORARIO_AVISTA, QUANT_AVISTA) " +
-                     "VALUES (SEQ_AVISTAMENTO.NEXTVAL, ?, ?, ?, ?)";
+                     "VALUES (?, ?, ?, ?, ?)";
         try (Connection con = new ConexaoFactory().conexao();
-             PreparedStatement ps = con.prepareStatement(sql, new String[]{"ID_AVISTA"})) {
-            ps.setInt(1, a.getIdEstacao());
-            ps.setInt(2, a.getIdEspecie());
-            ps.setTimestamp(3, Timestamp.valueOf(a.getHorarioAvista()));
-            ps.setInt(4, a.getQuantAvista());
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            int novoId = proximoId(con, "AVISTAMENTO", "ID_AVISTA");
+            ps.setInt(1, novoId);
+            ps.setInt(2, a.getIdEstacao());
+            ps.setInt(3, a.getIdEspecie());
+            ps.setTimestamp(4, Timestamp.valueOf(a.getHorarioAvista()));
+            ps.setInt(5, a.getQuantAvista());
             ps.executeUpdate();
-            try (ResultSet keys = ps.getGeneratedKeys()) {
-                if (keys.next()) a.setIdAvista(keys.getInt(1));
-            }
+            a.setIdAvista(novoId);
             System.out.println("Avistamento inserido. ID: " + a.getIdAvista());
         } catch (SQLException | ClassNotFoundException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    private int proximoId(Connection con, String tabela, String coluna) throws SQLException {
+        String sql = "SELECT NVL(MAX(" + coluna + "), 0) + 1 FROM " + tabela;
+        try (PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            return rs.getInt(1);
         }
     }
 
