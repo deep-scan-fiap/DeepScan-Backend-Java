@@ -25,9 +25,16 @@ jobs:
         run: docker rm deepscan-java || true
 
       - name: Run new container
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           docker run -d \
             --name deepscan-java \
             --restart always \
             -p 127.0.0.1:8081:8080 \
+            -e DB_URL="$DB_URL" \
+            -e DB_USER="$DB_USER" \
+            -e DB_PASSWORD="$DB_PASSWORD" \
             deepscan-java:latest

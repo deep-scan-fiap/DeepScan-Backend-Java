@@ -86,6 +86,60 @@ Todas as rotas têm o prefixo `/deepscan`.
 
 Liberado para qualquer origem via `CorsFilter` (`Access-Control-Allow-Origin: *`).
 
+## Configuração
+
+A aplicação lê as credenciais do banco Oracle das seguintes variáveis de ambiente:
+
+| Variável | Descrição |
+|---|---|
+| `DB_URL` | URL JDBC do banco (ex.: `jdbc:oracle:thin:@oracle.fiap.com.br:1521:orcl`) |
+| `DB_USER` | Usuário do banco (RM do aluno) |
+| `DB_PASSWORD` | Senha do banco |
+
+Se qualquer uma estiver ausente a aplicação falha rápido com `IllegalStateException`.
+
+**Em produção** (CI/CD), são configuradas como GitHub Secrets no repositório e injetadas pelo workflow `.github/workflows/deploy.yml` via `docker run -e`.
+
+**Em desenvolvimento local**:
+
+```bash
+export DB_URL="jdbc:oracle:thin:@oracle.fiap.com.br:1521:orcl"
+export DB_USER="RMxxxxxx"
+export DB_PASSWORD="..."
+mvn quarkus:dev
+```
+
+Ou via Docker:
+
+```bash
+docker build -t deepscan-java .
+docker run -p 8080:8080 \
+  -e DB_URL="$DB_URL" \
+  -e DB_USER="$DB_USER" \
+  -e DB_PASSWORD="$DB_PASSWORD" \
+  deepscan-java
+```
+
+## Estrutura do projeto
+
+```
+src/main/java/br/com/fiap/
+├── bo/          Camada de negócio (validações + orquestração)
+├── conexoes/    Fábrica de conexões JDBC
+├── dao/         Acesso a dados (PreparedStatement direto)
+├── entities/    Modelos do domínio
+├── exceptions/  Exceções de domínio: DadoInvalido, RecursoNaoEncontrado, Persistencia
+├── filter/      CorsFilter (@Provider)
+├── main/        Main.java (entry point Quarkus)
+├── mapper/      ExceptionMappers → respostas JSON padronizadas {"erro": "..."}
+└── resource/    Endpoints REST (1 resource por entidade)
+```
+
+Erros retornam sempre body `{"erro": "<mensagem>"}`:
+- `400` — validação de entrada (`DadoInvalidoException`)
+- `404` — recurso não encontrado (`RecursoNaoEncontradoException`)
+- `500` — falha no banco ou erro inesperado (`PersistenciaException` / qualquer outro)
+
 ## Stack
 
 - Java 17, Quarkus 3.8.3 (resteasy-reactive + jackson)
