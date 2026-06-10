@@ -2,9 +2,11 @@ package br.com.fiap.bo;
 
 import br.com.fiap.dao.EspecieDao;
 import br.com.fiap.entities.Especie;
+import br.com.fiap.exceptions.DadoInvalidoException;
+import br.com.fiap.exceptions.RecursoNaoEncontradoException;
 
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
 
 public class EspecieBO {
 
@@ -14,19 +16,7 @@ public class EspecieBO {
             Arrays.asList("LC", "NT", "VU", "EN", "CR");
 
     public Especie cadastrar(Especie especie) {
-        if (especie.getNcEspecie() == null || especie.getNcEspecie().isBlank())
-            throw new IllegalArgumentException("Nome cientifico e obrigatorio.");
-
-        if (especie.getNpEspecie() == null || especie.getNpEspecie().isBlank())
-            throw new IllegalArgumentException("Nome popular e obrigatorio.");
-
-        if (!CONSERVACOES_VALIDAS.contains(especie.getConservaEspecie()))
-            throw new IllegalArgumentException(
-                "Status de conservacao invalido. Use: LC, NT, VU, EN ou CR.");
-
-        if (especie.getHabitatEspecie() == null || especie.getHabitatEspecie().isBlank())
-            throw new IllegalArgumentException("Habitat e obrigatorio.");
-
+        validar(especie);
         dao.inserir(especie);
         return especie;
     }
@@ -34,7 +24,7 @@ public class EspecieBO {
     public Especie buscarPorId(int id) {
         Especie especie = dao.buscarPorId(id);
         if (especie == null)
-            throw new IllegalArgumentException("Especie com ID " + id + " nao encontrada.");
+            throw new RecursoNaoEncontradoException("Especie com ID " + id + " nao encontrada.");
         return especie;
     }
 
@@ -45,12 +35,9 @@ public class EspecieBO {
     public Especie atualizar(int id, Especie especie) {
         Especie existente = dao.buscarPorId(id);
         if (existente == null)
-            throw new IllegalArgumentException("Especie com ID " + id + " nao encontrada.");
+            throw new RecursoNaoEncontradoException("Especie com ID " + id + " nao encontrada.");
 
-        if (!CONSERVACOES_VALIDAS.contains(especie.getConservaEspecie()))
-            throw new IllegalArgumentException(
-                "Status de conservacao invalido. Use: LC, NT, VU, EN ou CR.");
-
+        validar(especie);
         especie.setIdEspecie(id);
         dao.atualizar(especie);
         return especie;
@@ -59,7 +46,22 @@ public class EspecieBO {
     public void deletar(int id) {
         Especie existente = dao.buscarPorId(id);
         if (existente == null)
-            throw new IllegalArgumentException("Especie com ID " + id + " nao encontrada.");
+            throw new RecursoNaoEncontradoException("Especie com ID " + id + " nao encontrada.");
         dao.deletar(id);
+    }
+
+    private void validar(Especie especie) {
+        if (especie.getNcEspecie() == null || especie.getNcEspecie().isBlank())
+            throw new DadoInvalidoException("Nome cientifico e obrigatorio.");
+
+        if (especie.getNpEspecie() == null || especie.getNpEspecie().isBlank())
+            throw new DadoInvalidoException("Nome popular e obrigatorio.");
+
+        if (!CONSERVACOES_VALIDAS.contains(especie.getConservaEspecie()))
+            throw new DadoInvalidoException(
+                "Status de conservacao invalido. Use: LC, NT, VU, EN ou CR.");
+
+        if (especie.getHabitatEspecie() == null || especie.getHabitatEspecie().isBlank())
+            throw new DadoInvalidoException("Habitat e obrigatorio.");
     }
 }

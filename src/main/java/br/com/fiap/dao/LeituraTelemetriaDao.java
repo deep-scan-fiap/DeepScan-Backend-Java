@@ -2,6 +2,7 @@ package br.com.fiap.dao;
 
 import br.com.fiap.conexoes.ConexaoFactory;
 import br.com.fiap.entities.LeituraTelemetria;
+import br.com.fiap.exceptions.PersistenciaException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -29,9 +30,8 @@ public class LeituraTelemetriaDao {
             ps.setDouble(10, l.getFocalDepth());
             ps.executeUpdate();
             l.setIdLeitura(novoId);
-            System.out.println("LeituraTelemetria inserida com sucesso. ID: " + l.getIdLeitura());
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao inserir leitura.", ex);
         }
     }
 
@@ -52,7 +52,7 @@ public class LeituraTelemetriaDao {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) lista.add(mapear(rs));
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao listar leituras.", ex);
         }
         return lista;
     }
@@ -66,7 +66,7 @@ public class LeituraTelemetriaDao {
                 if (rs.next()) return mapear(rs);
             }
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao buscar leitura.", ex);
         }
         return null;
     }
@@ -81,7 +81,7 @@ public class LeituraTelemetriaDao {
                 while (rs.next()) lista.add(mapear(rs));
             }
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao listar leituras da estacao.", ex);
         }
         return lista;
     }
@@ -92,9 +92,8 @@ public class LeituraTelemetriaDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.executeUpdate();
-            System.out.println("LeituraTelemetria deletada.");
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao deletar leitura.", ex);
         }
     }
 

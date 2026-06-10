@@ -3,6 +3,7 @@ package br.com.fiap.dao;
 import br.com.fiap.conexoes.ConexaoFactory;
 import br.com.fiap.entities.EstacaoZona;
 import br.com.fiap.entities.ZonaMonitora;
+import br.com.fiap.exceptions.PersistenciaException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -24,9 +25,8 @@ public class ZonaMonitoraDao {
             ps.setString(4, z.getDescZona());
             ps.executeUpdate();
             z.setIdZona(novoId);
-            System.out.println("ZonaMonitora inserida com sucesso.");
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao inserir zona.", ex);
         }
     }
 
@@ -54,9 +54,30 @@ public class ZonaMonitoraDao {
                 ));
             }
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao listar zonas.", ex);
         }
         return lista;
+    }
+
+    public ZonaMonitora buscarPorId(int id) {
+        String sql = "SELECT * FROM ZONA_MONITORA WHERE ID_ZONA = ?";
+        try (Connection con = new ConexaoFactory().conexao();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new ZonaMonitora(
+                            rs.getInt("ID_ZONA"),
+                            rs.getString("NOME_ZONA"),
+                            rs.getString("PAIS_ZONA"),
+                            rs.getString("DESC_ZONA")
+                    );
+                }
+            }
+        } catch (SQLException | ClassNotFoundException ex) {
+            throw new PersistenciaException("Falha ao buscar zona.", ex);
+        }
+        return null;
     }
 
     public void deletar(int idZona) {
@@ -65,9 +86,8 @@ public class ZonaMonitoraDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, idZona);
             ps.executeUpdate();
-            System.out.println("ZonaMonitora deletada.");
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao deletar zona.", ex);
         }
     }
 
@@ -81,9 +101,8 @@ public class ZonaMonitoraDao {
             ps.setInt(2, ez.getIdEstacao());
             ps.setDate(3, Date.valueOf(ez.getDataVinculo()));
             ps.executeUpdate();
-            System.out.println("EstacaoZona vinculada com sucesso.");
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao vincular estacao a zona.", ex);
         }
     }
 
@@ -101,7 +120,7 @@ public class ZonaMonitoraDao {
                 ));
             }
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao listar vinculos estacao-zona.", ex);
         }
         return lista;
     }
@@ -113,9 +132,8 @@ public class ZonaMonitoraDao {
             ps.setInt(1, idZona);
             ps.setInt(2, idEstacao);
             ps.executeUpdate();
-            System.out.println("Vinculo EstacaoZona removido.");
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao remover vinculo estacao-zona.", ex);
         }
     }
 }

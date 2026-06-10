@@ -2,6 +2,7 @@ package br.com.fiap.dao;
 
 import br.com.fiap.conexoes.ConexaoFactory;
 import br.com.fiap.entities.Especie;
+import br.com.fiap.exceptions.PersistenciaException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -23,9 +24,8 @@ public class EspecieDao {
             ps.setString(6, e.getDescEspecie());
             ps.executeUpdate();
             e.setIdEspecie(novoId);
-            System.out.println("Especie inserida. ID: " + e.getIdEspecie());
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao inserir especie.", ex);
         }
     }
 
@@ -46,7 +46,7 @@ public class EspecieDao {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) lista.add(mapear(rs));
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao listar especies.", ex);
         }
         return lista;
     }
@@ -60,7 +60,7 @@ public class EspecieDao {
                 if (rs.next()) return mapear(rs);
             }
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao buscar especie.", ex);
         }
         return null;
     }
@@ -77,9 +77,8 @@ public class EspecieDao {
             ps.setString(5, e.getDescEspecie());
             ps.setInt(6, e.getIdEspecie());
             ps.executeUpdate();
-            System.out.println("Especie atualizada.");
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao atualizar especie.", ex);
         }
     }
 
@@ -89,9 +88,8 @@ public class EspecieDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.executeUpdate();
-            System.out.println("Especie deletada.");
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao deletar especie.", ex);
         }
     }
 

@@ -2,6 +2,7 @@ package br.com.fiap.dao;
 
 import br.com.fiap.conexoes.ConexaoFactory;
 import br.com.fiap.entities.Alerta;
+import br.com.fiap.exceptions.PersistenciaException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -25,9 +26,8 @@ public class AlertaDao {
             ps.setString(7, a.getConclusaoAlerta());
             ps.executeUpdate();
             a.setIdAlerta(novoId);
-            System.out.println("Alerta inserido com sucesso.");
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao inserir alerta.", ex);
         }
     }
 
@@ -48,7 +48,7 @@ public class AlertaDao {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) lista.add(mapear(rs));
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao listar alertas.", ex);
         }
         return lista;
     }
@@ -61,9 +61,23 @@ public class AlertaDao {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) lista.add(mapear(rs));
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao listar alertas pendentes.", ex);
         }
         return lista;
+    }
+
+    public Alerta buscarPorId(int id) {
+        String sql = "SELECT * FROM ALERTA WHERE ID_ALERTA = ?";
+        try (Connection con = new ConexaoFactory().conexao();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return mapear(rs);
+            }
+        } catch (SQLException | ClassNotFoundException ex) {
+            throw new PersistenciaException("Falha ao buscar alerta.", ex);
+        }
+        return null;
     }
 
     public void resolverAlerta(int id) {
@@ -72,9 +86,8 @@ public class AlertaDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.executeUpdate();
-            System.out.println("Alerta " + id + " marcado como resolvido.");
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao resolver alerta.", ex);
         }
     }
 
@@ -84,9 +97,8 @@ public class AlertaDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.executeUpdate();
-            System.out.println("Alerta deletado.");
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao deletar alerta.", ex);
         }
     }
 

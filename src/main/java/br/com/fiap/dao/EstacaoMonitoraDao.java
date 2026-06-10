@@ -2,6 +2,7 @@ package br.com.fiap.dao;
 
 import br.com.fiap.conexoes.ConexaoFactory;
 import br.com.fiap.entities.EstacaoMonitora;
+import br.com.fiap.exceptions.PersistenciaException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -22,9 +23,8 @@ public class EstacaoMonitoraDao {
             ps.setString(5, e.getTipoEstacao());
             ps.executeUpdate();
             e.setIdEstacao(novoId);
-            System.out.println("EstacaoMonitora inserida com sucesso. ID: " + e.getIdEstacao());
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao inserir estacao.", ex);
         }
     }
 
@@ -47,7 +47,7 @@ public class EstacaoMonitoraDao {
                 lista.add(mapear(rs));
             }
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao listar estacoes.", ex);
         }
         return lista;
     }
@@ -61,7 +61,7 @@ public class EstacaoMonitoraDao {
                 if (rs.next()) return mapear(rs);
             }
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao buscar estacao.", ex);
         }
         return null;
     }
@@ -77,9 +77,8 @@ public class EstacaoMonitoraDao {
             ps.setString(4, e.getTipoEstacao());
             ps.setInt(5, e.getIdEstacao());
             ps.executeUpdate();
-            System.out.println("EstacaoMonitora atualizada.");
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao atualizar estacao.", ex);
         }
     }
 
@@ -89,9 +88,8 @@ public class EstacaoMonitoraDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.executeUpdate();
-            System.out.println("EstacaoMonitora deletada.");
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao deletar estacao.", ex);
         }
     }
 

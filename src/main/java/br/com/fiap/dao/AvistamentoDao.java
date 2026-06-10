@@ -2,6 +2,7 @@ package br.com.fiap.dao;
 
 import br.com.fiap.conexoes.ConexaoFactory;
 import br.com.fiap.entities.Avistamento;
+import br.com.fiap.exceptions.PersistenciaException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -22,9 +23,8 @@ public class AvistamentoDao {
             ps.setInt(5, a.getQuantAvista());
             ps.executeUpdate();
             a.setIdAvista(novoId);
-            System.out.println("Avistamento inserido. ID: " + a.getIdAvista());
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao inserir avistamento.", ex);
         }
     }
 
@@ -45,7 +45,7 @@ public class AvistamentoDao {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) lista.add(mapear(rs));
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao listar avistamentos.", ex);
         }
         return lista;
     }
@@ -59,7 +59,7 @@ public class AvistamentoDao {
                 if (rs.next()) return mapear(rs);
             }
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao buscar avistamento.", ex);
         }
         return null;
     }
@@ -74,7 +74,7 @@ public class AvistamentoDao {
                 while (rs.next()) lista.add(mapear(rs));
             }
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao listar avistamentos da especie.", ex);
         }
         return lista;
     }
@@ -90,9 +90,8 @@ public class AvistamentoDao {
             ps.setInt(4, a.getQuantAvista());
             ps.setInt(5, a.getIdAvista());
             ps.executeUpdate();
-            System.out.println("Avistamento atualizado.");
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao atualizar avistamento.", ex);
         }
     }
 
@@ -102,9 +101,8 @@ public class AvistamentoDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.executeUpdate();
-            System.out.println("Avistamento deletado.");
         } catch (SQLException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            throw new PersistenciaException("Falha ao deletar avistamento.", ex);
         }
     }
 
